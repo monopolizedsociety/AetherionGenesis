@@ -4,9 +4,9 @@ import json
 from core.agent_base import Agent
 
 class PersistenceAgent(Agent):
-    \"""
+    """
     Persists the MemoryGraph to disk on each 'tick'.
-    \"""
+    """
     def __init__(self, name, bus, filename='graph.json'):
         super().__init__(name)
         self.bus = bus

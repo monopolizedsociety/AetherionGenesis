@@ -18,7 +18,8 @@ class AgentBus:
 
     def dispatch(self, message_type: str, payload):
         """
-        Send a message of a given type to all interested agents.
+        Send a message of a given type to all registered agents.
+        Uses a snapshot of the agents dict to avoid 'dictionary changed size' errors.
         """
-        for agent in self._agents.values():
+        for agent in list(self._agents.values()):
             agent.handle(message_type, payload)
