@@ -1,37 +1,51 @@
-# core/kernel.py
-import os, threading
+import threading
+import time
+import os
+
 from core.agent_bus import AgentBus
-from core.memory_graph import MemoryGraph
 from core.plugin_manager import PluginManager
-from core.consensus import Consensus
+from core.message import Message
+from core.consensus import ConsensusNode
+from core.repl import start_repl
 
 class Kernel:
-    """
-    Core orchestrator for AetherionPrime.
-    - MemoryGraph + AgentBus
-    - Plugin discovery
-    - Optional Raft consensus (CONSENSUS=1)
-    """
     def __init__(self):
         self.bus = AgentBus()
-        self.graph = MemoryGraph()
-        setattr(self.bus, 'graph', self.graph)
         self.plugins = PluginManager(self.bus)
 
-        self.consensus = Consensus() if os.getenv('CONSENSUS','0') == '1' else None
-
     def bootstrap(self):
-        if self.consensus:
-            threading.Thread(target=self.consensus.run, daemon=True).start()
+        print("🚀 Bootstrapping AetherionPrime Kernel...")
 
-        self.graph.bootstrap()
-        self.bus.register_default_agents()
-        self.plugins.load_plugins()
+        # Start core agents
+        from agents.echo_agent import EchoAgent
+        from agents.logging_agent import LoggingAgent
+        from agents.heartbeat_agent import HeartbeatAgent
+        from agents.scheduler_agent import SchedulerAgent
+        from agents.perception_agent import PerceptionAgent
 
-        if self.consensus:
-            print("🚀 AetherionPrime Kernel bootstrapped with Raft consensus")
+        self.bus.register(EchoAgent())
+        self.bus.register(LoggingAgent())
+        self.bus.register(HeartbeatAgent())
+        self.bus.register(SchedulerAgent(interval=5))
+        self.bus.register(PerceptionAgent())
+
+        # Start plugin loader
+        plugin_thread = threading.Thread(target=self.plugins.load_plugins, daemon=True)
+        plugin_thread.start()
+
+        # Start consensus if env configured
+        if os.environ.get("RAFT_ID"):
+            node_id = os.environ["RAFT_ID"]
+            peers = os.environ.get("RAFT_PEERS", "")
+            peers = peers.split(",") if peers else []
+            consensus = ConsensusNode(self.bus, node_id, peers)
+            consensus_thread = threading.Thread(target=consensus.run, daemon=True)
+            consensus_thread.start()
         else:
-            print("🚀 AetherionPrime Kernel bootstrapped")
+            print("[consensus] Not configured. Set RAFT_ID to enable.")
+
+        # Start REPL (interactive shell)
+        start_repl(self.bus)
 
 if __name__ == "__main__":
     Kernel().bootstrap()
