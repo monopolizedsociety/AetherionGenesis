@@ -13,6 +13,7 @@ class SchedulerAgent(Agent):
     def __init__(self, name, bus, interval=5):
         super().__init__(name)
         self.bus = bus
+        self.interval = interval
         bus.register_agent(name, self)
         threading.Thread(target=self.run, daemon=True).start()
 
