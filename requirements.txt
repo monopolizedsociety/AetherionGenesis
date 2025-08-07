@@ -2,3 +2,5 @@ networkx>=2.8
 openai
 faiss-cpu
 numpy
+watchdog
+pillow
