@@ -7,7 +7,8 @@ from core.message import Message
 
 class SchedulerAgent(Agent):
     """
-    Emits a 'tick' message on the bus at specified intervals.
+    Emits a 'tick' message on the bus at specified intervals
+    and logs ticks correctly from the Message payload.
     """
     def __init__(self, name, bus, interval=5):
         super().__init__(name)
@@ -23,9 +24,10 @@ class SchedulerAgent(Agent):
             count += 1
             time.sleep(self.interval)
 
-    def handle(self, message_type, payload):
-        # log each tick
-        print(f"[{self.name}] Tick #{payload['count']} at {payload['timestamp']}")
+    def handle(self, message_type, message):
+        if message_type == "tick":
+            data = message.payload
+            print(f"[{self.name}] Tick #{data['count']} at {data['timestamp']}")
 
 def register(bus):
     SchedulerAgent("scheduler", bus, interval=5)
