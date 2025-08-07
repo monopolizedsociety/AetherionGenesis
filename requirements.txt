@@ -6,3 +6,4 @@ watchdog
 pillow
 raftos
 gitpython
+deap
