@@ -1,29 +1,23 @@
-# core/consensus.py
-import os
-import asyncio
-import raftos
+import os, asyncio, raftos
+
+def _valid(addr: str) -> bool:
+    return isinstance(addr, str) and ':' in addr and addr.strip()
 
 class Consensus:
-    """
-    Wraps a Raft node (via raftos) for distributed state consensus.
-    """
     def __init__(self, node_id=None, peers=None):
-        self.node_id = node_id or os.getenv('RAFT_ID', 'node1')
-        peer_str = os.getenv('RAFT_PEERS', '')
-        self.peers = peers if peers is not None else peer_str.split(',')
-        # configure raftos log directory
-        raftos.configure({
-            'log_path': f'./logs/{self.node_id}'
-        })
+        self.node_id = node_id or os.getenv('RAFT_ID', '')
+        peers_env = os.getenv('RAFT_PEERS', '')
+        self.peers = peers if peers is not None else [
+            p.strip() for p in peers_env.split(',') if _valid(p)
+        ]
+        raftos.configure({'log_path': f'./logs/{self.node_id or "node"}'})
 
     async def start(self):
-        """
-        Registers this node and participates in leader election.
-        """
+        if not _valid(self.node_id):
+            print("[consensus] RAFT_ID not set as host:port; skipping consensus")
+            return
+        print(f"[consensus] starting as {self.node_id} with peers {self.peers}")
         await raftos.register(self.node_id, self.peers)
 
     def run(self):
-        """
-        Launch the asyncio loop for the raft node.
-        """
         asyncio.run(self.start())
