@@ -13,6 +13,8 @@ class Kernel:
     def __init__(self):
         self.bus = AgentBus()
         self.graph = MemoryGraph()
+        # expose the graph so agents can query it
+        setattr(self.bus, 'graph', self.graph)
         self.plugins = PluginManager(self.bus)
 
     def bootstrap(self):
