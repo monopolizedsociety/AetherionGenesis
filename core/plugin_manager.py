@@ -1,5 +1,4 @@
 # core/plugin_manager.py
-
 import importlib
 import os
 

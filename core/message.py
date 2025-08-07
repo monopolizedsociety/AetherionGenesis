@@ -1,5 +1,4 @@
 # core/message.py
-
 from dataclasses import dataclass
 from typing import Any, Dict
 

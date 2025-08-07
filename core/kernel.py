@@ -1,5 +1,4 @@
 # core/kernel.py
-
 from core.agent_bus import AgentBus
 from core.memory_graph import MemoryGraph
 from core.plugin_manager import PluginManager

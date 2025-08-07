@@ -1,5 +1,4 @@
 # core/agent_base.py
-
 class Agent:
     """
     Base class for all agents in the Aetherion civilization.
