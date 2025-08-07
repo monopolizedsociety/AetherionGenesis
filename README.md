@@ -28,3 +28,7 @@ docker run --rm aetherionprime:latest
 
 ### On the Limits of Current AI Engines
 Apple’s paper **“The Illusion of Thinking: Understanding the Strengths and Limitations of Reasoning Models via the Lens of Problem Complexity”** demonstrates that even advanced reasoning models break down on tasks as complexity grows (e.g. Tower of Hanoi sequences), revealing they are pattern-matchers rather than true reasoners. This insight guides AetherionPrime’s design as a **system of systems**, combining specialized agents with symbolic and statistical components, rather than relying on a single monolithic LLM.
+
+### Environment Variables
+
+- \`OPENAI_API_KEY\`: your OpenAI API key for embeddings.
