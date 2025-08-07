@@ -1,25 +1,44 @@
 # core/agent_bus.py
+import threading
 
 class AgentBus:
     """
-    Simple message bus for registering and dispatching messages between agents.
+    Message bus with topic subscriptions and a recursion guard.
     """
     def __init__(self):
-        self._agents = {}
+        self._agents = {}          # name -> agent instance
+        self._subscriptions = {}   # name -> set of message types or {'*'}
+        self._tls = threading.local()
 
-    def register_agent(self, name: str, agent):
-        """Register an agent under a unique name."""
+    def register_agent(self, name: str, agent, subscriptions=None):
+        """Register an agent and (optionally) restrict which topics it receives."""
         self._agents[name] = agent
+        self._subscriptions[name] = set(subscriptions) if subscriptions else {'*'}
 
     def register_default_agents(self):
-        """Register all built-in agents (to be implemented)."""
-        # TODO: import and register core agents
+        """Reserved for built-ins (noop for now)."""
         pass
+
+    def _targets(self, message_type: str):
+        targets = []
+        for name, agent in self._agents.items():
+            subs = self._subscriptions.get(name, {'*'})
+            if '*' in subs or message_type in subs:
+                targets.append(agent)
+        return targets
 
     def dispatch(self, message_type: str, payload):
         """
-        Send a message of a given type to all registered agents.
-        Uses a snapshot of the agents dict to avoid 'dictionary changed size' errors.
+        Deliver a message only to subscribers.
+        Snapshot the target list and guard against runaway recursion.
         """
-        for agent in list(self._agents.values()):
-            agent.handle(message_type, payload)
+        depth = getattr(self._tls, 'depth', 0)
+        if depth > 10:
+            print(f"[bus] drop '{message_type}': max dispatch depth reached")
+            return
+        self._tls.depth = depth + 1
+        try:
+            for agent in list(self._targets(message_type)):
+                agent.handle(message_type, payload)
+        finally:
+            self._tls.depth = depth
